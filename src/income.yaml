@@ -5,7 +5,7 @@
 
     folder:
         # folder : str, path to your folder containing your *.xls files, could be a full/relative path
-        path : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data
+        path : ../data
         # repeat : bool, whether to loop through your .xls files in the folder
         repeat : True
         # ignore : options for ignoring files

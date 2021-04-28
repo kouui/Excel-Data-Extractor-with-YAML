@@ -44,7 +44,6 @@ if __name__ == "__main__":
                 else:
                     count_miss += 1
 
-        break
 
     conn.commit()
     conn.close()
