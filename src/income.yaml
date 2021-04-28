@@ -1,0 +1,140 @@
+---
+    database :
+        # name : str, the name of the output sqlite3 database, could be a full/relative path
+        name : income.db
+
+    folder:
+        # folder : str, path to your folder containing your *.xls files, could be a full/relative path
+        path : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data
+        # repeat : bool, whether to loop through your .xls files in the folder
+        repeat : True
+        # ignore : options for ignoring files
+        ignore :
+            # contain : str, file will be ignored due to containing some keyword in the filename
+            contain : "産業計"
+        # name : str, filename, if is not none and repeat is False, then process this specific file
+        name : none
+    sheet:
+        # repeat : bool, whether to loop through sheets in the .xls files
+        repeat : True
+        # ignore : options for ignoring sheets
+        ignore :
+            # contain : str, sheet will be ignored due to containing some keyword in the sheetname
+            contain : "産業計"
+        # name : str, sheetname, if is not none and repeat is False, then process this specific sheet
+        name : none
+        # index : int, index of the sheet, if is not none and repeat is False, then process this specific sheet
+        index : none
+    data :
+        # name : column name of the data column in pandas.DataFrame
+        name  : データ
+        # dtype : datatype, could be int, float, str
+        dtype : float
+        # except : exception handle when you fails to convert the data to your dtype
+        #          currently only 'na' is supported
+        except: na
+        # range : range of your data to extract
+        range :
+            # 1 : group index, if you have multiple range to extract. optional
+            # if you have only one ranage to extract, then could be
+            # range:
+            #     col : J, AO
+            #     row : 28, 39
+            1 :
+                # col : str, first and last column index of your data range
+                col : J, AO
+                # row : str, first and last column index of your data range
+                row : 28, 39
+            2 :
+                col : J, AO
+                row : 41, 52
+        # table : related to sqlite3 database
+        table :
+            # name : str, table name when use sqlite3 database
+            name : data
+
+    attribute :
+        # column name of the data column in pandas.DataFrame
+        "企業規模":
+            # type : str, only column, row, single are supported.
+            #        column : attribute apply to a column of your data
+            #        row    : attribute apply to a row of your data
+            #        single : attribute apply to the full range of your data
+            type : column
+            range:
+                # there is no group index here, so this attribute will be applied to all group index
+                row : 10, 10
+                # since it is type : column, we are able to extract attribute information
+                # with the row range. col range information will not be used
+                col : none
+            dtype : str
+            # replace : if dtype : str, then you are able to define
+            #           what sub-string will be replace by what. for example,
+            #           "企業規模計" will be replaced by empty string ""
+            replace :
+                "企業規模計" : ""
+                "（" : ""
+                "）" : ""
+                "\u3000" : ""
+            table :
+                # name : str, when use sqlite3 database, table name would be "attr_{name}"
+                name : size
+        "データ種類":
+            type : column
+            range:
+                row : 12, 12
+                col : none
+            dtype: str
+            table :
+                name : name
+        "単位":
+            type : column
+            range:
+                row : 13, 13
+                col : none
+            dtype: str
+            table :
+                name : unit
+        "年齢":
+            type : row
+            range:
+                # since it is type : row, we are able to extract attribute information
+                # with the column range. row range information will not be used
+                row : none
+                col : I, I
+            dtype: str
+            replace:
+                "\u3000" : ""
+            table :
+                name : age
+        "都道府県":
+            type : single
+            range:
+                # since it is type : single, we are able to extract attribute information
+                # by specifying the particular cell position
+                row : 7, 7
+                col : J, J
+            dtype: str
+            table :
+                name : region
+        "産業":
+            type : single
+            range:
+                row : 8, 8
+                col : J, J
+            dtype: str
+            table :
+                name : industry
+        "性別":
+            type : single
+            range:
+                # there is group index here, so the attribute range is also group index sensitive.
+                1 :
+                    row : 27, 27
+                    col : I, I
+                2 :
+                    row : 40, 40
+                    col : I, I
+            dtype: str
+            table :
+                name : gender
