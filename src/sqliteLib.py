@@ -1,11 +1,13 @@
 
 import sqlite3
+from typing import List, Dict, Tuple
 
 _datatype = {
     "int" : "INTEGER",
     "float" : "FLOAT",
     "str"  : "STRING",
 }
+
 
 #------------------------------------------------------------
 # with pandas dataframe
@@ -28,7 +30,8 @@ def sqlite_SaveDataFrame(path, df, table):
 #------------------------------------------------------------
 from lib import yaml_except
 
-def isTableExist(conn, table):
+def isTableExist(conn : sqlite3.Connection,
+                 table : str) -> bool:
     c = conn.cursor()
     c.execute(f"SELECT count(name) FROM sqlite_master WHERE type='table' AND name='{table}';")
     if c.fetchone()[0] == 1:
@@ -39,14 +42,16 @@ def isTableExist(conn, table):
         return False
 
 
-def dropTable(conn, table):
+def dropTable(conn : sqlite3.Connection,
+              table : str) -> None:
     c = conn.cursor()
     sql = f"drop table {table};"
     c.execute(sql);
     conn.commit()
     return None
 
-def initializeDatabase(handle, isCreate=True):
+def initializeDatabase(handle : Dict[str,Dict],
+                       isCreate : bool =True) -> Tuple[sqlite3.Connection, Dict[str,Dict]]:
 
     dbname = handle["database"]["name"]
     conn = sqlite3.connect(dbname)
@@ -90,7 +95,7 @@ def initializeDatabase(handle, isCreate=True):
 
     return conn, attr_code
 
-def addDataDict(conn, data_dict, attr_code, handle):
+def addDataDict(conn, data_dict, attr_code, handle) -> bool:
 
     datakey = handle["data"]["name"]
     if data_dict[datakey] is yaml_except["na"]:

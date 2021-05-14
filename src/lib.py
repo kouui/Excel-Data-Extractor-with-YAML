@@ -1,4 +1,4 @@
-import xlrd
+import xlrd, openpyxl
 import yaml
 import os
 from colorlog.setup_logger import setup_logger
@@ -8,20 +8,26 @@ from glob import glob
 
 import pandas as pd
 
-
+from typing import List, Dict, Tuple, Union, Any
 
 _Logger = setup_logger()
+
+_T_UNION_WS = Union[openpyxl.worksheet.worksheet.Worksheet,xlrd.sheet.Sheet]
+_T_UNION_WB = Union[xlrd.book.Book,openpyxl.workbook.Workbook]
+_T_UNION_RANGE_DICT = Dict[ str,Union[ Tuple[str], Dict[str,Tuple[str]] ] ]
+_T_UNION_CELL_VALUE = Union[int,float,str,pd._libs.missing.NAType]
+_T_MERGE_DICT = Dict[Tuple[int],_T_UNION_CELL_VALUE]
 
 #------------------------------------------------------------
 # file reader
 #------------------------------------------------------------
-def getFileNames(handle):
+def getFileNames(handle : Dict[str, Dict]) -> Tuple[str]:
 
     tar = handle["folder"]
     path = tar["path"]
     if tar["repeat"]:
         out = []
-        files = glob(os.path.join(path, "*.xls"))
+        files = glob(os.path.join(path, "*.xls*"))
         for file in files:
             basename = os.path.basename(file)
             try:
@@ -38,7 +44,7 @@ def getFileNames(handle):
         raise ValueError("Don't know how to select files.")
 
 
-def yaml_read(fname):
+def yaml_read(fname : str) -> Dict[str, Dict]:
 
     with open(fname) as file:
         yaml_obj = yaml.safe_load(file)
@@ -46,26 +52,28 @@ def yaml_read(fname):
 
     return yaml_obj
 
-yaml_dtype_func = {
+yaml_dtype_func : Dict[str, Tuple[str,type]] = {
     "float" : ("float", float),
     "int"   : ("int", int),
     "str"   : ("str", str),
 }
 
-yaml_except = {
+yaml_except : Dict[str, _T_UNION_CELL_VALUE] = {
     "na" : pd.NA,
 }
 
-def hasMultiGroup(keys):
+def hasMultiGroup(keys : type({}.keys()) ) -> bool:
     if "row" not in keys:
         return True
     return False
 
-def getRange(text):
+def getRange(text : str) -> Tuple[str]:
     l, r = [w.strip() for w in text.split(',')]
     return l, r
 
-def getAttrRange(range_dict, key, group_id):
+def getAttrRange(range_dict : _T_UNION_RANGE_DICT,
+                 key : str,
+                 group_id : int) -> Union[None, Tuple[str]]:
 
     if hasMultiGroup(range_dict.keys()):
         range_dict_true = range_dict[group_id]
@@ -81,13 +89,20 @@ def getAttrRange(range_dict, key, group_id):
     else:
         return None
 
-def getSheetsIndex(handle, wb):
+def getSheetsIndex(handle : Dict[str, Dict],
+                   wb : _T_UNION_WB,
+                   fCode : int) -> Tuple[int]:
 
     tar = handle["sheet"]
     if tar["repeat"]:
         out = []
 
-        for i, sheet_name in enumerate(wb.sheet_names()):
+        if fCode == 0:
+            sheet_names = wb.sheet_names()
+        elif fCode == 1:
+            sheet_names = wb.sheetnames
+
+        for i, sheet_name in enumerate(sheet_names):
             try:
                 if tar["ignore"]["contain"] in sheet_name :
                     _Logger.info(f"skip sheet {sheet_name}")
@@ -111,16 +126,17 @@ def getSheetsIndex(handle, wb):
 # formator
 #------------------------------------------------------------
 
-def formatStringBasic(s_):
+def formatStringBasic(s_ : str) -> str:
 
     return s_.replace('\n', '').strip()
 
-def formatStringReplace(s_, replace_dict):
+def formatStringReplace(s_ : str,
+                        replace_dict : Dict[str,str]) -> str:
     for key, val in replace_dict.items():
         s_ = s_.replace(key, val)
     return s_
 
-def formatValue(val):
+def formatValue(val : Any) -> Any:
 
     if isinstance(val, str):
         val = formatStringBasic(val)
@@ -130,18 +146,33 @@ def formatValue(val):
 #------------------------------------------------------------
 # xlrd processor
 #------------------------------------------------------------
-def getMergeValueDict(ws):
+def getMergeValueDict(ws : _T_UNION_WS,
+                      fCode : int) -> _T_MERGE_DICT:
 
     data_dict = {}
-    for crange in ws.merged_cells:
-        rlo, rhi,clo, chi = crange
+    if fCode == 0:
+        merged_ranges = ws.merged_cells
+    elif fCode == 1:
+        merged_ranges = ws.merged_cells.ranges
+
+    for crange in merged_ranges:
+        if fCode == 0:
+            rlo, rhi,clo, chi = crange
+        elif fCode == 1:
+            clo, rlo, chi, rhi = crange.bounds
+            chi += 1
+            rhi += 1
         value = None
         for rowx in range(rlo, rhi):
             for colx in range(clo, chi):
+                value = ws.cell(rowx,colx).value
+                #if fCode == 0:
+                #    if ws.cell(rowx,colx).ctype not in (xlrd.XL_CELL_BLANK, xlrd.XL_CELL_EMPTY):
+                #       value = ws.cell(rowx,colx).value
+                #elif fCode == 1:
+                #    value = ws.cell(rowx,colx).value
                 if value is not None:
                     break
-                if ws.cell(rowx,colx).ctype not in (xlrd.XL_CELL_BLANK, xlrd.XL_CELL_EMPTY):
-                    value = ws.cell(rowx,colx).value
             if value is not None:
                 break
 
@@ -153,7 +184,15 @@ def getMergeValueDict(ws):
 
     return data_dict
 
-def getCellValue(rowx, colx, mValue_dict, ws):
+def getCellValue(rowx : int,
+                 colx : int,
+                 mValue_dict : Dict[Tuple[int],_T_UNION_CELL_VALUE],
+                 ws : _T_UNION_WS,
+                 fCode : int) -> _T_UNION_CELL_VALUE:
+
+    if fCode == 1:
+        rowx += 1
+        colx += 1
 
     try:
         value = mValue_dict[ (rowx,colx) ]
@@ -166,7 +205,10 @@ def getCellValue(rowx, colx, mValue_dict, ws):
 # record generator
 #------------------------------------------------------------
 
-def generateDataDict(handle, ws, mValue_dict):
+def generateDataDict(handle : Dict[str, Dict],
+                     ws : _T_UNION_WS,
+                     mValue_dict : _T_MERGE_DICT,
+                     fCode : int) -> Dict[str, _T_UNION_CELL_VALUE]:
 
     ##: data
     tar = handle["data"]
@@ -194,13 +236,14 @@ def generateDataDict(handle, ws, mValue_dict):
         rhi += 1 # to include the final row
         chi += 1 # to include the final col
 
+
         for rowx in range(rlo, rhi):
             for colx in range(clo, chi):
 
                 data_dict = {}
 
                 # get data value
-                value = getCellValue(rowx, colx, mValue_dict, ws)
+                value = getCellValue(rowx, colx, mValue_dict, ws, fCode)
                 try:
                     value = convert_func(value)
                     value = formatValue(value)
@@ -212,13 +255,12 @@ def generateDataDict(handle, ws, mValue_dict):
                 for aname, adict in handle["attribute"].items():
                     attr_type = adict["dtype"]
                     attr_range = getAttrRange(adict["range"], adict["type"], group_id)
-
                     if adict["type"] == "column":
-                        value = getCellValue(R(attr_range[0]), colx, mValue_dict, ws)
+                        value = getCellValue(R(attr_range[0]), colx, mValue_dict, ws, fCode)
                     elif adict["type"] == "row":
-                        value = getCellValue(rowx, C(attr_range[0]), mValue_dict, ws)
+                        value = getCellValue(rowx, C(attr_range[0]), mValue_dict, ws, fCode)
                     elif adict["type"] == "single":
-                        value = getCellValue(R(attr_range[0]), C(attr_range[1]), mValue_dict, ws)
+                        value = getCellValue(R(attr_range[0]), C(attr_range[1]), mValue_dict, ws, fCode)
                     else:
                         raise ValueError("Supported attribute types : column, row, single.")
 
