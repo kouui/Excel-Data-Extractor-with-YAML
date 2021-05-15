@@ -177,3 +177,10 @@ attr_industry = 1
   attr_gender = 1
 sqlite> .exit
 ```
+
+---
+
+## TODO
+
+- [ ] functionality to append the `data_dict` directly into a `pandas.DataFrame`
+- [ ] functionality to read a `sqlite3` database into a `pandas.DataFrame`

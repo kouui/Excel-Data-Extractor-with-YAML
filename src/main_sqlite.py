@@ -17,7 +17,8 @@ if __name__ == "__main__":
 
     files : Tuple[str] = getFileNames(handle)
     # sqlite way
-    conn, attr_code = initializeDatabase(handle, isCreate=True)
+    isCreate : bool = handle["database"]["new"]
+    conn, attr_code = initializeDatabase(handle, isCreate)
     #conn.close()
     #exit(0)
     count_record : int = 0
@@ -54,6 +55,7 @@ if __name__ == "__main__":
                     count_record += 1
                 else:
                     count_miss += 1
+
 
 
     conn.commit()

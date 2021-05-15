@@ -2,6 +2,14 @@
     database :
         # name : str, the name of the output sqlite3 database, could be a full/relative path
         name : income.db
+        # new : bool, if True, then create drop and create tables no matter whether tables exist
+        #             if Flase, load the attribute code from exist table
+        #               (if not exist, create new table)
+        new  : True
+
+        # warning : currently we do not check duplicate record in {data} table
+        #           that is, it is possible to have two records with exactly the
+        #           same attribute codes in {data} table
 
     folder:
         # folder : str, path to your folder containing your *.xls files, could be a full/relative path

@@ -1,5 +1,6 @@
 
 import sqlite3
+import os
 from typing import List, Dict, Tuple
 
 _datatype = {
@@ -54,6 +55,8 @@ def initializeDatabase(handle : Dict[str,Dict],
                        isCreate : bool =True) -> Tuple[sqlite3.Connection, Dict[str,Dict]]:
 
     dbname = handle["database"]["name"]
+    if isCreate and os.path.exists(dbname):
+        os.remove(dbname)
     conn = sqlite3.connect(dbname)
     cur = conn.cursor()
 
@@ -65,32 +68,44 @@ def initializeDatabase(handle : Dict[str,Dict],
         attr_info[ "attr_"+val["table"]["name"] ] = _datatype[val["dtype"]]
         attr_code[ "attr_"+val["table"]["name"] ] = {}
 
-    if isCreate:
-        # create data table
-        tar = handle["data"]
-        name = tar["table"]["name"]
-        dtype =  _datatype[tar["dtype"]]
-        sql = f"CREATE TABLE {name}(id INTEGER PRIMARY KEY AUTOINCREMENT, value {dtype}"
-        for name, dtype in attr_info.items():
-            sql += f", {name} INTEGER"
-        sql += ");"
-        name = tar["table"]["name"]
-        if isTableExist(conn, name):
+    #if isCreate:
+    # create data table
+    tar = handle["data"]
+    name = tar["table"]["name"]
+    dtype =  _datatype[tar["dtype"]]
+    sql = f"CREATE TABLE {name}(id INTEGER PRIMARY KEY AUTOINCREMENT, value {dtype}"
+    for name, dtype in attr_info.items():
+        sql += f", {name} INTEGER"
+    sql += ");"
+    name = tar["table"]["name"]
+    if isTableExist(conn, name):
+        if isCreate:
             dropTable(conn, name)
-        cur.execute( sql )
-
-        # create attribtue table
-        tar = handle["attribute"]
-        for name, dtype in attr_info.items():
-            if isTableExist(conn, name):
-                dropTable(conn, name)
-            sql = f"CREATE TABLE {name}(id INTEGER PRIMARY KEY AUTOINCREMENT, value {dtype});"
             cur.execute( sql )
 
-        conn.commit()
     else:
-        # read attribute code from database
-        raise NotImplementedError("isCreate = False not yet.")
+        cur.execute( sql )
+
+    # create attribtue table
+    tar = handle["attribute"]
+    for name, dtype in attr_info.items():
+        sql = f"CREATE TABLE {name}(id INTEGER PRIMARY KEY AUTOINCREMENT, value {dtype});"
+        if isTableExist(conn, name):
+            if isCreate:
+                dropTable(conn, name)
+                cur.execute( sql )
+            else:
+                ##: read attribute code from database
+                sql = f"SELECT * FROM {name}"
+                #print(f"table : {name}")
+                for row in cur.execute(sql):
+                    #print(row)
+                    attr_code[name][row[1]] = row[0]
+        else:
+            cur.execute( sql )
+
+    conn.commit()
+
     #conn.close()
 
     return conn, attr_code
@@ -140,5 +155,6 @@ def addDataDict(conn, data_dict, attr_code, handle) -> bool:
     sql2 += ");"
     sql = sql1 + sql2
     cur.execute( sql )
+
 
     return True
