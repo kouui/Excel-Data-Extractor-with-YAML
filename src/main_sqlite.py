@@ -1,5 +1,6 @@
 # 3.8 MB Excel file ~ 2.1 MB sqlite db file
 
+from typing_extensions import TypeAlias
 import xlrd, openpyxl
 import sys
 from lib import _Logger, yaml_read, getMergeValueDict
@@ -8,6 +9,7 @@ from lib import getSheetsIndex, getFileNames, generateDataDict
 from sqliteLib import initializeDatabase, addDataDict
 
 from typing import Dict, List, Tuple
+
 
 if __name__ == "__main__":
 

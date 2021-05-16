@@ -6,12 +6,12 @@ http://en.wikipedia.org/wiki/ANSI_escape_code
 Uses colorama as an optional dependency to support color on Windows
 """
 
-try:
-    import colorama
-except ImportError:
-    pass
-else:
-    colorama.init(strip=False)
+#try:
+#    import colorama
+#except ImportError:
+#    pass
+#else:
+#    colorama.init(strip=False)
 
 __all__ = ('escape_codes', 'parse_colors')
 
