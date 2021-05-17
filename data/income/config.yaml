@@ -1,7 +1,7 @@
 ---
     database :
         # name : str, the name of the output sqlite3 database, could be a full/relative path
-        name : income.db
+        name : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data/income/out.db
         # new : bool, if True, then create drop and create tables no matter whether tables exist
         #             if Flase, load the attribute code from exist table
         #               (if not exist, create new table)
@@ -13,13 +13,13 @@
 
     folder:
         # folder : str, path to your folder containing your *.xls files, could be a full/relative path
-        path : ../data
+        path : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data/income/
         # repeat : bool, whether to loop through your .xls files in the folder
         repeat : True
         # ignore : options for ignoring files
         ignore :
             # contain : str, file will be ignored due to containing some keyword in the filename
-            contain : "産業計"
+            contain : ["産業計",]
         # name : str, filename, if is not none and repeat is False, then process this specific file
         name : none
     sheet:
@@ -28,7 +28,7 @@
         # ignore : options for ignoring sheets
         ignore :
             # contain : str, sheet will be ignored due to containing some keyword in the sheetname
-            contain : "産業計"
+            contain : ["産業計",]
         # name : str, sheetname, if is not none and repeat is False, then process this specific sheet
         name : none
         # index : int, index of the sheet, if is not none and repeat is False, then process this specific sheet

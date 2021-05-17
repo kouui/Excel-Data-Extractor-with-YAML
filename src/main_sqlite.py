@@ -1,6 +1,5 @@
 # 3.8 MB Excel file ~ 2.1 MB sqlite db file
 
-from typing_extensions import TypeAlias
 import xlrd, openpyxl
 import sys
 from lib import _Logger, yaml_read, getMergeValueDict
@@ -57,8 +56,7 @@ if __name__ == "__main__":
                     count_record += 1
                 else:
                     count_miss += 1
-
-
+            #break
 
     conn.commit()
     conn.close()

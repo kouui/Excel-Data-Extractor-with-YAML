@@ -10,14 +10,13 @@ I built this library with `python=3.8`. `python=3.x` should work.
 ```python
 
 $ git clone https://github.com/kouui/Excel-Data-Extractor-with-YAML.git
-$ cd Excel-Data-Extractor-with-YAML/src
+$ cd Excel-Data-Extractor-with-YAML
 $ conda create -n <env_name> python=3.8
 $ conda activate <env_name>
-$ pip install requirements.txt
-$ python main_sqlite.py
-$ python main_sqlite.py income.yaml
-[12:15:48     INFO] Read income.yaml
-[12:15:48     INFO] Processing file : ../data/(1-8-1-7)aa2n11.xls
+$ pip install src/requirements.txt
+$ python src/main_sqlite.py data/income/config.yaml
+[12:15:48     INFO] Read data/income/config.yaml
+[12:28:43     INFO] Processing file : /path/to/data/income/(1-8-1-7)aa2n11.xls
 [12:15:49     INFO] skip sheet (東京)産業計
 [12:15:49     INFO] skip sheet (神奈川)産業計
 [12:15:49     INFO] Processing sheet : (東京)Ｃ鉱業，採石業，砂利採取業
@@ -37,13 +36,13 @@ $ python main_sqlite.py income.yaml
 [12:16:03     INFO] Processing sheet : (千葉)Ｒ９２その他の事業サービス業
 [12:16:03     INFO] number of added recode = 121776, number of miss record = 31824
 ```
-roughly, `../data/*.xls` files (totally 7.2 MB) were converted into a sqlite3 database with size of 4.1 MB.
+roughly, `../data/income/*.xls` files (totally 7.2 MB) were converted into a sqlite3 database with size of 4.1 MB.
 
 ## sample results
 
-with the sample `income.yaml`, the created `income.db` looks like
+with the sample `config.yaml`, the created `out.db` looks like
 ```
-$ sqlite3 income.db
+$ sqlite3 out.db
 SQLite version 3.35.4 2021-04-02 15:20:15
 Enter ".help" for usage hints.
 sqlite> .mode line
@@ -182,7 +181,7 @@ sqlite> .exit
 
 ## `sqlite3` --> `pandas.DataFrame`
 
-As shown in `src/example.sqlite_to_pandas.py`, by loading the data table and attribute tables, you are able to construct your `pandas.DataFrame` very easily with several rows of code.
+As shown in `data/income/sqlite_to_pandas.py`, by loading the data table and attribute tables, you are able to construct your `pandas.DataFrame` very easily with several rows of code.
 
 ```python
 
@@ -192,7 +191,9 @@ if __name__ == "__main__":
     import sqlite3
     from typing import Dict, List, Tuple
 
-    file_sqlite3 : str = "./income.db"
+    import os
+
+    file_sqlite3 : str = __file__.replace(os.path.basename(__file__), "out.db")
     conn : sqlite3.Connection = sqlite3.connect(file_sqlite3)
     
     ## : read attribute table and then set the 'id' column as index

@@ -1,0 +1,76 @@
+---
+    database :
+        name : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data/food-expense/out.db
+        new  : True
+    folder:
+        path : /Users/liu/kouui/workspace/mars-spirit/excel-data-formattor/data/food-expense
+        repeat : True
+        ignore :
+            contain : none
+        name : none
+    sheet:
+        repeat : True
+        ignore :
+            contain : ["無職", "勤労"]
+        name : none
+        index : none
+    data :
+        name  : データ
+        dtype : float
+        except: na
+        range :
+            1 :
+                col : P, AH
+                row : 30, 30
+            2 :
+                col : P, AH
+                row : 31, 31
+        table :
+            name : data
+
+    attribute :
+        "収入":
+            type : column
+            range:
+                row : 12, 12
+                col : none
+            dtype : str
+            replace :
+                "未満" : "～200"
+                "250万円" : "200～250"
+                "以上" : "1500～"
+            table :
+                name : income
+        "データ種類":
+            type : row
+            range:
+                1 :
+                    col : K, K
+                    row : none
+                2 :
+                    col : L, L
+                    row : none
+            dtype: str
+            replace:
+                "\u3000" : ""
+            table :
+                name : type
+        "都市":
+            type : single
+            range:
+                row : 7, 7
+                col : H, H
+            dtype: str
+            table :
+                name : city
+
+        "年":
+            type : single
+            range:
+                row : 6, 6
+                col : H, H
+            dtype: str
+            table :
+                name : year
+            replace :
+                "年" : ""

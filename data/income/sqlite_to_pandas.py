@@ -5,7 +5,9 @@ if __name__ == "__main__":
     import sqlite3
     from typing import Dict, List, Tuple
 
-    file_sqlite3 : str = "./income.db"
+    import os
+
+    file_sqlite3 : str = __file__.replace(os.path.basename(__file__), "out.db")
     conn : sqlite3.Connection = sqlite3.connect(file_sqlite3)
 
     attr_tables : Dict[str, pd.DataFrame] = {}

@@ -31,8 +31,12 @@ def getFileNames(handle : Dict[str, Dict]) -> Tuple[str]:
         for file in files:
             basename = os.path.basename(file)
             try:
-                if tar["ignore"]["contain"] in basename :
-                    _Logger.info(f"skip file {basename}")
+                isSkip = False
+                for word in tar["ignore"]["contain"]:
+                    if word in basename :
+                        isSkip = True
+                        _Logger.info(f"skip sheet {basename}")
+                if isSkip:
                     continue
             except KeyError:
                 pass
@@ -104,8 +108,12 @@ def getSheetsIndex(handle : Dict[str, Dict],
 
         for i, sheet_name in enumerate(sheet_names):
             try:
-                if tar["ignore"]["contain"] in sheet_name :
-                    _Logger.info(f"skip sheet {sheet_name}")
+                isSkip = False
+                for word in tar["ignore"]["contain"]:
+                    if word in sheet_name :
+                        isSkip = True
+                        _Logger.info(f"skip sheet {sheet_name}")
+                if isSkip:
                     continue
             except KeyError:
                 pass
@@ -128,7 +136,7 @@ def getSheetsIndex(handle : Dict[str, Dict],
 
 def formatStringBasic(s_ : str) -> str:
 
-    return s_.replace('\n', '').strip()
+    return s_.replace(' ', '').replace('\u3000', '').replace('\n', '').strip()
 
 def formatStringReplace(s_ : str,
                         replace_dict : Dict[str,str]) -> str:
