@@ -36,7 +36,14 @@ $ python src/main_sqlite.py data/income/config.yaml
 [12:16:03     INFO] Processing sheet : (千葉)Ｒ９２その他の事業サービス業
 [12:16:03     INFO] number of added recode = 121776, number of miss record = 31824
 ```
+
 roughly, `../data/income/*.xls` files (totally 7.2 MB) were converted into a sqlite3 database with size of 4.1 MB.
+
+---
+
+## configuration illustration
+
+![illustration](./fig.png)
 
 ## sample results
 
